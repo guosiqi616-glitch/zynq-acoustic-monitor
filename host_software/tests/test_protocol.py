@@ -79,7 +79,7 @@ class TestSkips(unittest.TestCase):
 class TestRejects(unittest.TestCase):
     def test_unknown_frame(self):
         self.assertEqual(parse_line("t,1,2,3").err, "E_UNKNOWN_FRAME")
-        self.assertEqual(parse_line("X,1,2").err, "E_UNKNOWN_FRAME")
+        self.assertEqual(parse_line("Z,1,2").err, "E_UNKNOWN_FRAME")   # X 已是合法帧
 
     def test_field_count(self):
         self.assertEqual(parse_line("T,1,2,3").err, "E_FIELD_COUNT")

@@ -1,5 +1,7 @@
 # 工业机械异响与环境监测系统
 
+[![tests](https://github.com/guosiqi616-glitch/zynq-acoustic-monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/guosiqi616-glitch/zynq-acoustic-monitor/actions/workflows/tests.yml)
+
 基于 **Zynq-7010** 的机械异响在线监测系统：FPGA 做双频带声学特征提取，ARM 做动态基线统计判决，浏览器做实时可视化。
 
 > 面向工业车间与机房运维：在异响变成故障之前，把它变成可读的信号。
@@ -130,7 +132,7 @@ python relay\server.py --source sim --port 8080
 | `E` | 事件触发 | 事件：dB、能量比、阈值、原因 |
 | `X` | 10 Hz | 诊断：级别、判决分、基线 μ/σ、噪声底、峭度、标志位 |
 
-解析器见 `host_software/lib/protocol.py`。
+完整字段定义、哨兵值与 flags 位见 [`docs/协议说明.md`](docs/协议说明.md)；解析器见 `host_software/lib/protocol.py`。
 
 ---
 
@@ -184,9 +186,13 @@ python relay\server.py --source sim --port 8080
 | 文件 | 内容 |
 |---|---|
 | `docs/作品说明书.docx` | 作品说明书（条目式：功能特性、技术特点、指标表、创新点、实验数据） |
+| `docs/协议说明.md` | 串口协议完整字段定义、哨兵值、flags 位 |
 | `docs/系统组成与使用说明.md` | 软硬件组成与运行说明 |
+| `docs/接线与麦克风.md` | 麦克风模块接线与增益调整 |
+| `docs/音频通路验证.md` | 音频链路自检步骤 |
 | `docs/测试报告_抗噪声对比.md` | 144 次实验的完整数据 |
 | `docs/创新点证据卡.md` | 各创新点对应的证据与话术 |
+| `docs/演示流程.md` | 演示脚本与素材顺序 |
 | `source/写作依据.docx` | 每个数字的出处、每条文献支撑哪一段 |
 
 ---
