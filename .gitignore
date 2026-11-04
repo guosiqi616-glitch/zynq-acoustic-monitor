@@ -1,0 +1,53 @@
+# ===== 构建产物与依赖（体积大，不入库）=====
+.venv/
+ui/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.Xil/
+*.log
+*.tmp
+
+# ===== Vivado 生成目录 =====
+project_1.runs/
+project_1.cache/
+project_1.gen/
+project_1.hw/
+project_1.sim/
+project_1.ip_user_files/
+*.jou
+*.str
+*.bit
+*.ltx
+*.dcp
+
+# ===== Vitis 生成目录 =====
+vitis_workspace/anomaly_detect_app/Debug/
+vitis_workspace/anomaly_detect_app/Release/
+vitis_ws_qspi/
+**/.metadata/
+**/*.elf
+**/*.o
+**/*.d
+
+# ===== 编辑器与系统 =====
+.idea/
+.vscode/
+*.bak
+*.orig
+~$*
+Thumbs.db
+desktop.ini
+
+# ===== 音频素材：非演示用的大文件 =====
+test_audio/_clips/
+!test_audio/DEMO_20261103/
+
+# ===== 录制与临时输出 =====
+records/*.log
+records/boot_capture.txt
+records/home_check*.png
+records/dash_*.png
+records/tpl_*.png
+records/tp2_*.png
+records/video_raw/

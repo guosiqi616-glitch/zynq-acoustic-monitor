@@ -1,0 +1,219 @@
+{
+  "protocol": "1.0",
+  "note": "C 与 JS 解析器共用。ok=true 时校验 kind/warn/fields；ok=false 时校验 err。",
+  "cases": [
+    {
+      "name": "i_normal",
+      "line": "I,1,0,ZYNQ7010,0.3.1,48000,512,2,3",
+      "ok": true,
+      "kind": "I",
+      "fields": {"major": 1, "minor": 0, "fs_hz": 48000, "win": 512, "bands": 2, "caps": 3}
+    },
+    {
+      "name": "i_extra_field",
+      "line": "I,1,0,ZYNQ7010,0.3.1,48000,512,2,3,99",
+      "ok": true,
+      "kind": "I",
+      "warn": "E_EXTRA_FIELDS",
+      "fields": {"major": 1, "caps": 3}
+    },
+    {
+      "name": "i_unsupported_bands",
+      "line": "I,1,0,ZYNQ7010,0.3.1,48000,512,3,3",
+      "ok": true,
+      "kind": "I",
+      "warn": "E_UNSUPPORTED_BANDS",
+      "fields": {"bands": 3}
+    },
+    {
+      "name": "t_normal",
+      "line": "T,1024,123456789,2537,5012,-812,-643,523,1,8,9,1",
+      "ok": true,
+      "kind": "T",
+      "fields": {"seq": 1024, "t_us": 123456789, "temp": 2537, "hum": 5012, "ber": 523, "lock": 8, "det": 9, "supp": 1}
+    },
+    {
+      "name": "t_min",
+      "line": "T,0,0,-4000,0,-1200,-1200,0,0,0,0,0",
+      "ok": true,
+      "kind": "T",
+      "fields": {"seq": 0, "t_us": 0, "temp": -4000, "hum": 0, "ber": 0, "state": 0}
+    },
+    {
+      "name": "t_max",
+      "line": "T,4294967295,9223372036854775807,12500,10000,0,0,1000,2,4294967294,4294967295,1",
+      "ok": true,
+      "kind": "T",
+      "fields": {"seq": 4294967295, "temp": 12500, "hum": 10000, "ber": 1000, "state": 2, "lock": 4294967294, "det": 4294967295, "supp": 1}
+    },
+    {
+      "name": "t_sentinels",
+      "line": "T,7,1000000,-32768,65535,-32768,-32768,65535,255,3,3,0",
+      "ok": true,
+      "kind": "T",
+      "fields": {"temp": -32768, "hum": 65535, "ber": 65535, "state": 255, "lock": 3, "det": 3, "supp": 0}
+    },
+    {
+      "name": "t_extra_field",
+      "line": "T,1024,123456789,2537,5012,-812,-643,523,1,8,9,1,42",
+      "ok": true,
+      "kind": "T",
+      "warn": "E_EXTRA_FIELDS",
+      "fields": {"temp": 2537, "lock": 8}
+    },
+    {
+      "name": "e_normal",
+      "line": "E,15,123456800,-790,-610,564,550,8,0",
+      "ok": true,
+      "kind": "E",
+      "fields": {"seq": 15, "t_us": 123456800, "db_low": -790, "db_high": -610, "ber": 564, "thr": 550, "lock": 8, "reason": 0}
+    },
+    {
+      "name": "e_selftest",
+      "line": "E,16,123456900,-780,-600,580,550,9,2",
+      "ok": true,
+      "kind": "E",
+      "fields": {"lock": 9, "reason": 2}
+    },
+    {
+      "name": "s_normal",
+      "line": "S,60,123457000,3,0,0",
+      "ok": true,
+      "kind": "S",
+      "fields": {"seq": 60, "t_us": 123457000, "flags": 3, "err_cnt": 0, "ovf_cnt": 0}
+    },
+    {
+      "name": "s_flags",
+      "line": "S,61,123458000,15,2,1",
+      "ok": true,
+      "kind": "S",
+      "fields": {"flags": 15, "err_cnt": 2, "ovf_cnt": 1}
+    },
+    {
+      "name": "skip_empty",
+      "line": "",
+      "ok": true,
+      "kind": "skip"
+    },
+    {
+      "name": "skip_comment",
+      "line": "# device boot banner",
+      "ok": true,
+      "kind": "skip"
+    },
+    {
+      "name": "bad_float",
+      "line": "T,1024,123456789,25.37,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_BAD_INT"
+    },
+    {
+      "name": "bad_empty_field",
+      "line": "T,1024,,2537,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_BAD_INT"
+    },
+    {
+      "name": "bad_missing_field",
+      "line": "T,1024,123456789,2537,5012,-812,-643,523,1,8,9",
+      "ok": false,
+      "err": "E_FIELD_COUNT"
+    },
+    {
+      "name": "bad_lowercase_frame",
+      "line": "t,1024,123456789,2537,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_UNKNOWN_FRAME"
+    },
+    {
+      "name": "bad_unknown_frame",
+      "line": "X,1,2,3",
+      "ok": false,
+      "err": "E_UNKNOWN_FRAME"
+    },
+    {
+      "name": "bad_plus_sign",
+      "line": "T,1024,123456789,+2537,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_BAD_INT"
+    },
+    {
+      "name": "bad_hex",
+      "line": "T,1024,123456789,0x9E9,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_BAD_INT"
+    },
+    {
+      "name": "bad_temp_range",
+      "line": "T,1024,123456789,20000,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_ber_range",
+      "line": "T,1024,123456789,2537,5012,-812,-643,1001,1,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_state_range",
+      "line": "T,1024,123456789,2537,5012,-812,-643,523,3,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_hum_negative",
+      "line": "T,1024,123456789,2537,-1,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_seq_overflow",
+      "line": "T,4294967296,123456789,2537,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_t_us_negative",
+      "line": "T,1024,-1,2537,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_db_range",
+      "line": "T,1024,123456789,2537,5012,-1201,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_thr_range",
+      "line": "E,15,123456800,-790,-610,564,1001,8,0",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_reason_range",
+      "line": "E,15,123456800,-790,-610,564,550,8,3",
+      "ok": false,
+      "err": "E_RANGE"
+    },
+    {
+      "name": "bad_dev_id",
+      "line": "I,1,0,ZYNQ 7010,0.3.1,48000,512,2,3",
+      "ok": false,
+      "err": "E_BAD_TOKEN"
+    },
+    {
+      "name": "bad_non_ascii",
+      "line": "T,1024,123456789,25３7,5012,-812,-643,523,1,8,9,1",
+      "ok": false,
+      "err": "E_BAD_ASCII"
+    },
+    {
+      "name": "bad_too_long",
+      "line": "T,1024,123456789,2537,5012,-812,-643,523,1,8,9,1,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "ok": false,
+      "err": "E_TOO_LONG"
+    }
+  ]
+}

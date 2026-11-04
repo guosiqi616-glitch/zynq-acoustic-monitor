@@ -1,0 +1,7 @@
+condition,noise,level,trials,POD_A,POD_B,POD_B2,POD_C,DUTY_A,DUTY_B,DUTY_B2,DUTY_C,ONSETS_A_permin,ONSETS_B_permin,ONSETS_B2_permin,ONSETS_C_permin,ber_median,mu_median,sd_median
+exp_quiet_white.wav,white,quiet,24,87.5,50.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,780,780,26
+exp_mid_white.wav,white,mid,24,100.0,50.0,100.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,778.0,780.0,23.0
+exp_loud_white.wav,white,loud,24,100.0,50.0,87.5,95.8,100.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,780,781,22
+exp_quiet_hf.wav,hf,quiet,24,95.8,100.0,100.0,100.0,0.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,972.0,970.0,20.0
+exp_mid_hf.wav,hf,mid,24,100.0,100.0,100.0,75.0,100.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,973,973,20
+exp_loud_hf.wav,hf,loud,24,100.0,100.0,100.0,37.5,100.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,973.0,974.0,20.0

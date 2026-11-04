@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>设备在线监测与故障诊断系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=1035">
+  <link rel="stylesheet" href="/static/theme-light.css?v=1035">
+  <link rel="stylesheet" href="/static/theme-glass.css?v=1035">
+  <style id="zh-scale">
+    /* 中文版：字号整体调大；中文标签取消字间距，避免松散 */
+    .card-top .label          { font-size: 16.5px !important; letter-spacing: .02em !important; }
+    .card-top .hint           { font-size: 14px !important; letter-spacing: 0 !important; }
+    .brand-title              { font-size: 18px !important; }
+    .brand-sub                { font-size: 12px !important; letter-spacing: .04em !important; }
+    .nav-group-label          { font-size: 13.5px !important; }
+    .nav-item                 { font-size: 15px !important; }
+    .pill                     { font-size: 13px !important; }
+    .hero-meta                { font-size: 12px !important; }
+    .split-head span          { font-size: 15px !important; letter-spacing: 0 !important; }
+    .split-head b             { font-size: 18px !important; }
+    .trend-head, .band-history-head { font-size: 15px !important; letter-spacing: 0 !important; }
+    .last-lock span           { font-size: 14px !important; letter-spacing: 0 !important; }
+    .last-lock b              { font-size: 20px !important; }
+    .mini span                { font-size: 13.5px !important; letter-spacing: 0 !important; }
+    .mini b                   { font-size: 28px !important; }
+    .band-name                { font-size: 18px !important; }
+    .band-name em             { font-size: 13px !important; }
+    .band-value b             { font-size: 28px !important; }
+    .band-value span          { font-size: 13px !important; }
+    .env-line span            { font-size: 17px !important; }
+    .env-line b               { font-size: 32px !important; }
+    .env-line em              { font-size: 13px !important; }
+    .health-grid              { font-size: 17px !important; }
+    .health-grid .h-item b    { font-size: 19px !important; }
+    .h-item b                 { font-size: 17px !important; }
+    .health-foot              { font-size: 14.5px !important; }
+    .event-list               { font-size: 20px !important; }
+    .event-list li            { grid-template-columns: 12px 100px 150px 1fr 120px 100px !important;
+                                padding: 8px 4px !important; }
+    .ev-lock, .ev-time, .ev-ber, .ev-thr { font-size: 20px !important; }
+    .ev-time                  { font-size: 21px !important; }
+    .gauge-legend             { font-size: 14px !important; }
+    .side-version             { font-size: 11.5px !important; }
+    .side-status              { font-size: 14.5px !important; }
+    .crumb                    { font-size: 13px !important; letter-spacing: .08em !important; }
+  </style>    <style id="focus-view">
+    .focus-holder { position: fixed; z-index: 60; display: none; padding: 10px;
+                    border-radius: 18px; background: rgba(5,9,16,.96); backdrop-filter: blur(8px); }
+    .focus-holder.on { display: flex; }
+    .focus-holder > .panel { flex: 1 1 auto; width: 100%; height: 100%; min-height: 0; margin: 0; }
+  </style>  <style id="focus-type">
+    /* 聚焦模式下把内容放大，避免"面板铺满、字还是很小" */
+    .focus-holder .card-top .label   { font-size: 17px !important; }
+    .focus-holder .card-top .hint    { font-size: 18px !important; }
+    .focus-holder .event-list        { font-size: 21px !important; }
+    .focus-holder .event-list li     { grid-template-columns: 16px 140px 250px 1fr 160px 130px !important;
+                                       padding: 16px 6px !important; }
+    .focus-holder .ev-dot,
+    .focus-holder .ev-lock,
+    .focus-holder .ev-time,
+    .focus-holder .ev-ber,
+    .focus-holder .ev-thr            { font-size: 19px !important; }
+    .focus-holder .ev-time           { font-size: 23px !important; }
+    .focus-holder .band-name         { font-size: 22px !important; }
+    .focus-holder .band-value b      { font-size: 34px !important; }
+    .focus-holder .health-grid       { font-size: 30px !important;
+                                       align-content: space-evenly !important;
+                                       row-gap: 36px !important;
+                                       column-gap: 40px !important;
+                                       padding: 24px 12px !important; }
+    .focus-holder .health-grid .h-item { padding: 18px 10px !important;
+                                         border-bottom: 1px solid rgba(104,148,180,.14) !important; }
+    .focus-holder .h-item b          { font-size: 34px !important; }
+    .focus-holder .health-foot       { font-size: 16px !important; }
+  </style>  <style id="hsplit-style">
+    .hsplit { flex: 0 0 auto; height: 12px; margin: 4px 0 2px; position: relative;
+              cursor: row-resize; z-index: 6; touch-action: none; }
+    .hsplit::after { content: ""; position: absolute; left: 10%; right: 10%; top: 5px;
+                     height: 2px; border-radius: 1px; background: rgba(120,170,220,.20);
+                     transition: background .15s; }
+    .hsplit:hover::after, .hsplit.dragging::after { background: rgba(120,200,255,.70); }
+  </style>  <style id="alarm-style">
+    .snapshot { width: 580px !important; padding: 28px 32px 30px !important;
+                border: 2px solid rgba(239,68,68,.85) !important;
+                box-shadow: 0 0 70px rgba(239,68,68,.35), 0 24px 70px rgba(0,0,0,.65) !important; }
+    .snap-tag { font-size: 17px !important; letter-spacing: .12em !important; color: #ff6b6b !important; }
+    .snap-head b { font-size: 42px !important; }
+    .snap-head #snap-time { font-size: 16px !important; }
+    .snap-grid { margin-top: 22px !important; gap: 14px 28px !important; }
+    .snap-grid span { font-size: 14px !important; }
+    .snap-grid b { font-size: 27px !important; }
+  </style>
+<style id="glass-polish">
+  /* 背景：同一张图压暗后垫底，玻璃卡片才能"透"出内容 */
+  body {
+    background-color: #05070c !important;
+    background-image:
+      radial-gradient(760px 520px at 12% 4%, rgba(56, 122, 255, .26), transparent 72%),
+      radial-gradient(820px 560px at 88% 92%, rgba(38, 190, 175, .20), transparent 72%),
+      radial-gradient(620px 440px at 52% 46%, rgba(120, 110, 255, .13), transparent 74%),
+      linear-gradient(180deg, rgba(4, 6, 11, .74) 0%, rgba(4, 6, 11, .82) 60%, rgba(4, 6, 11, .86) 100%),
+      url("/static/assets/hero-bg.png") !important;
+    background-size: cover, cover, cover, cover, cover !important;
+    background-position: center, center, center, center, center !important;
+    background-attachment: fixed, fixed, fixed, fixed, fixed !important;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat !important;
+  }
+
+  /* 卡片：更透一点、模糊更强，加一层顶部高光 */
+  .card {
+    background:
+      linear-gradient(180deg,
+        rgba(255, 255, 255, .11) 0%,
+        rgba(255, 255, 255, .05) 45%,
+        rgba(255, 255, 255, .022) 100%),
+      rgba(14, 18, 27, .12) !important;
+    backdrop-filter: blur(46px) saturate(140%) brightness(1.28) !important;
+    -webkit-backdrop-filter: blur(46px) saturate(140%) brightness(1.28) !important;
+    border-color: rgba(255, 255, 255, .15) !important;
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, .55),
+      inset 0 1px 0 rgba(255, 255, 255, .14),
+      inset 0 -1px 0 rgba(255, 255, 255, .04) !important;
+  }
+
+  /* 侧栏与顶栏也统一成同一套玻璃 */
+  .sidebar, .topbar, .side, .nav {
+    backdrop-filter: blur(36px) saturate(128%) !important;
+    -webkit-backdrop-filter: blur(36px) saturate(128%) !important;
+  }
+
+  /* 卡片里的次级块（小格子、事件行）稍微提亮，避免糊成一片 */
+  .mini {
+    background: rgba(255, 255, 255, .045) !important;
+    border: 1px solid rgba(255, 255, 255, .09) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+  }
+</style>
+
+
+<style id="ber-room">
+  /* 给斜体数字留出右侧空间，避免最后一个字被切 */
+  .ber {
+    padding-right: .14em !important;
+    letter-spacing: -.035em !important;
+  }
+  .ber-wrap { overflow: visible !important; }
+</style>
+</head>
+<body>
+  <video class="dash-bg" autoplay muted playsinline loop preload="auto" aria-hidden="true"
+    src="/static/assets/hero.mp4"></video>
+  <div class="dash-bg-overlay" aria-hidden="true"></div>
+  <div id="app" data-state="CONNECTING">
+    <aside class="sidebar">
+      <a class="side-brand" href="/" title="返回首页">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12h3l2.2-5.5 4.2 11L15 12h6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">机械异响监测</div>
+          <div class="brand-sub">ZYNQ-7010 · 多模态监测</div>
+        </div>
+      </a>
+
+      <div class="nav-group-label">工作台</div>
+      <nav class="side-nav">
+        <a class="nav-item active" href="#dashboard" title="总览">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1.4"/>
+            <rect x="14" y="3" width="7" height="7" rx="1.4"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.4"/>
+            <rect x="14" y="14" width="7" height="7" rx="1.4"/>
+          </svg>
+          <span>总览</span>
+        </a>
+        <a class="nav-item" href="#panel-bars" title="实时趋势">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 17l5-6 4 3 6-8"/>
+            <path d="M3 21h18"/>
+          </svg>
+          <span>实时趋势</span>
+        </a>
+        <a class="nav-item" href="#panel-events" title="锁存事件">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+            <path d="M10 21h4"/>
+          </svg>
+          <span>锁存事件</span>
+        </a>
+      </nav>
+
+      <div class="nav-group-label">设备</div>
+      <nav class="side-nav">
+        <a class="nav-item" href="#panel-health" title="设备状态">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="7" y="7" width="10" height="10" rx="2"/>
+            <path d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M17 9h4M3 15h4M17 15h4"/>
+          </svg>
+          <span>设备状态</span>
+        </a>
+        <a class="nav-item" href="/" title="返回首页">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11.5 12 4l9 7.5"/>
+            <path d="M5.5 10v9h13v-9"/>
+          </svg>
+          <span>返回首页</span>
+        </a>
+      </nav>
+
+      <div class="side-foot">
+        <div class="side-status">
+          <span id="side-dot" class="side-dot connecting"></span>
+          <span id="side-status">连接中</span>
+        </div>
+        <div class="side-version">PROTO 1.0 · ZYNQ-7010</div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="top-title">
+          <div class="crumb">ZYNQ-7010 · 实时监测</div>
+          <h1>设备在线监测与故障诊断系统</h1>
+        </div>
+        <div class="top-meta">
+          <span id="mode" class="pill mode sim">SIM</span>
+          <span id="state" class="pill state connecting">CONNECTING</span>
+          <span class="pill">帧率 <b id="fps">--</b></span>
+          <span class="pill">延迟 <b id="lat">--</b></span>
+          <a class="pill ghost" href="/" title="返回首页">首页</a>
+          <button id="reset-layout" class="pill ghost" type="button" title="恢复默认布局">↺ 布局</button>
+          <span id="dot" class="live-dot connecting"></span>
+        </div>
+      </header>
+
+      <main id="dashboard" class="dashboard">
+        <div class="dash-main">
+          <div class="col col-left">
+            <section id="panel-hero" class="card panel hero" data-panel="hero">
+              <div class="card-top">
+                <span class="label">频带能量比</span>
+                <span class="hint">能量比</span>
+              </div>
+              <div class="ber-wrap">
+                <div id="ber" class="ber">0.000</div>
+                <div id="berState" class="state-chip normal">正常</div>
+              </div>
+              <div class="hero-meta" style="flex-wrap:wrap;row-gap:2px">
+                <span id="thr" style="white-space:nowrap">阈值 0.813</span>
+                <span id="session" style="white-space:nowrap">会话 1</span>
+                <span id="floor" style="flex-basis:100%;font-size:12px;opacity:.8;white-space:nowrap">本底 --</span>
+              </div>
+
+              <div class="split">
+                <div class="split-head">
+                  <span>低频</span><b id="split-low">--</b>
+                  <span class="spacer"></span>
+                  <span>高频</span><b id="split-high">--</b>
+                </div>
+                <div class="split-track">
+                  <div id="split-low-fill" class="split-low-fill"></div>
+                  <div id="split-high-fill" class="split-high-fill"></div>
+                </div>
+              </div>
+
+              <div class="trend-head"><span>能量比趋势</span><span>120 秒</span></div>
+              <div id="ber-spark" class="ber-spark"></div>
+
+              <div class="last-lock">
+                <div><span>最近锁存</span><b id="last-lock">--</b></div>
+                <div><span>时间</span><b id="last-time">--</b></div>
+                <div><span>能量比</span><b id="last-ber">--</b></div>
+              </div>
+
+              <div class="hero-grid">
+                <div class="mini"><span>锁存</span><b id="lock">0</b></div>
+                <div class="mini"><span>触发</span><b id="det">0</b></div>
+                <div class="mini"><span>抑制</span><b id="supp">0</b></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="splitter v" data-split="left" title="拖动调整左栏宽度"></div>
+
+          <div class="col col-center">
+            <section id="panel-bars" class="card panel bars" data-panel="bars">
+              <div class="card-top">
+                <span class="label">双频带能量</span>
+                <span class="hint">dBFS　−100 … −40</span>
+              </div>
+              <div class="bar-stage">
+                <div class="guides">
+                  <span style="bottom:0%"></span>
+                  <span style="bottom:33.3%"></span>
+                  <span style="bottom:66.7%"></span>
+                  <span style="bottom:100%"></span>
+                </div>
+                <div class="scale">
+                  <span style="bottom:0%">−100</span>
+                  <span style="bottom:33.3%">−80</span>
+                  <span style="bottom:66.7%">−60</span>
+                  <span style="bottom:100%">−40</span>
+                </div>
+                <div class="band">
+                  <div class="band-name">低频 <em>1–4 kHz</em></div>
+                  <div class="bar-track">
+                    <div class="bar-grid"></div>
+                    <div id="bar-low" class="bar-fill low"></div>
+                    <div id="cap-low" class="bar-cap"></div>
+                  </div>
+                  <div class="band-value"><b id="db-low">--</b><span>dB</span></div>
+                </div>
+                <div class="band">
+                  <div class="band-name">高频 <em>8–16 kHz</em></div>
+                  <div class="bar-track">
+                    <div class="bar-grid"></div>
+                    <div id="bar-high" class="bar-fill high"></div>
+                    <div id="cap-high" class="bar-cap"></div>
+                  </div>
+                  <div class="band-value"><b id="db-high">--</b><span>dB</span></div>
+                </div>
+              </div>
+              <div class="hsplit" data-hsplit title="上下拖动调整高度"></div>
+              <div class="band-history">
+                <div class="band-history-head"><span>能量历史</span><span>120 秒</span></div>
+                <div id="band-spark" class="band-spark"></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="splitter v" data-split="right" title="拖动调整右栏宽度"></div>
+
+          <div class="col col-right">
+            <section class="card panel gauge-card" data-panel="gauge">
+              <div class="card-top">
+                <span class="label">能量比仪表</span>
+                <span class="hint">0 – 1</span>
+              </div>
+              <div id="gauge" class="gauge"></div>
+              <div class="gauge-legend">
+                <span class="ok">0.65 预警</span>
+                <span class="alarm">0.78 触发</span>
+              </div>
+            </section>
+
+            <div class="splitter h" data-split="gauge-env" title="拖动调整仪表高度"></div>
+
+            <section class="card panel env-card" data-panel="env">
+              <div class="card-top">
+                <span class="label">环境</span>
+                <span class="hint">SHT30</span>
+              </div>
+              <div class="env-line"><span>温度</span><b id="temp">--</b><em>°C</em></div>
+              <div id="temp-spark" class="spark"></div>
+              <div class="env-line"><span>湿度</span><b id="hum">--</b><em>%RH</em></div>
+              <div id="hum-spark" class="spark"></div>
+            </section>
+
+            <div class="splitter h" data-split="env-health" title="拖动调整环境区高度"></div>
+
+            <section id="panel-health" class="card panel health-card" data-panel="health">
+              <div class="card-top">
+                <span class="label">链路完整性</span>
+                <span id="healthState" class="hint ok">全部正常</span>
+              </div>
+              <div id="integrity" class="health-grid"></div>
+              <div class="health-foot">接收 <b id="rx">--</b><span>·</span>协议 <b>1.0</b></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="splitter h" data-split="bottom" title="拖动调整底栏高度"></div>
+
+        <section id="panel-events" class="card panel events" data-panel="events">
+          <div class="card-top">
+            <span class="label">锁存事件</span>
+            <span class="hint">最近 5 次</span>
+          </div>
+          <ul id="events" class="event-list">
+            <li class="empty">等待锁存事件…</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+
+    <div id="focus-holder" class="focus-holder"></div>
+    <div id="lost" class="lost-layer">
+      <div class="lost-card"><span></span>信号丢失 · 正在重连</div>
+    </div>
+    <div id="flash" class="flash"></div>
+    <div id="snapshot" class="snapshot">
+      <div class="snap-head">
+        <span class="snap-tag">⚠ 监测到异常响动</span>
+        <b id="snap-lock">#0</b>
+        <span id="snap-time">--:--:--</span>
+      </div>
+      <div class="snap-grid">
+        <div><span>低频</span><b id="snap-low">--</b></div>
+        <div><span>高频</span><b id="snap-high">--</b></div>
+        <div><span>能量比</span><b id="snap-ber">--</b></div>
+        <div><span>阈值</span><b id="snap-thr">--</b></div>
+      </div>
+    </div>
+    <div id="debug" class="debug-panel"></div>
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="/static/echarts.min.js?v=1035"></script>
+  <script src="/static/charts.js?v=1035"></script>
+  <script src="/static/app.js?v=1035"></script>
+  <script>
+    (function () {
+      var bg = document.querySelector(".dash-bg");
+      if (!bg) return;
+      var play = function () { bg.play().catch(function () {}); };
+      if (bg.readyState >= 2) play();
+      bg.addEventListener("loadeddata", play);
+      bg.addEventListener("canplay", play);
+      bg.addEventListener("loadedmetadata", function () {
+        try { bg.currentTime = 5.0; } catch (e) { /* ignore */ }
+        play();
+      });
+    })();
+  </script>
+  <script>
+  (function () {
+    var holder = document.getElementById("focus-holder");
+    if (!holder) return;
+    var focused = null, homeParent = null, homeNext = null;
+
+    function place() {
+      var d = document.getElementById("dashboard");
+      if (!d || !focused) return;
+      var r = d.getBoundingClientRect();
+      holder.style.left = r.left + "px";
+      holder.style.top = r.top + "px";
+      holder.style.width = r.width + "px";
+      holder.style.height = r.height + "px";
+    }
+    function resizeCharts() {
+      if (window.Charts && window.Charts.resize) { try { window.Charts.resize(); } catch (e) {} }
+    }
+    function unfocus() {
+      if (!focused) return;
+      focused.classList.remove("focus-target");
+      if (homeParent) homeParent.insertBefore(focused, homeNext);
+      holder.classList.remove("on");
+      focused = null; homeParent = null; homeNext = null;
+      resizeCharts();
+    }
+    function focus(el) {
+      if (!el || focused === el) return;
+      unfocus();
+      homeParent = el.parentNode; homeNext = el.nextSibling;
+      holder.appendChild(el);
+      el.classList.add("focus-target");
+      holder.classList.add("on");
+      focused = el;
+      place();
+      setTimeout(function () { place(); resizeCharts(); }, 80);
+    }
+    function setActive(a) {
+      document.querySelectorAll(".side-nav .nav-item").forEach(function (x) { x.classList.remove("active"); });
+      if (a) a.classList.add("active");
+    }
+    document.querySelectorAll(".side-nav .nav-item").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var href = a.getAttribute("href") || "";
+        if (href.charAt(0) !== "#") return;
+        e.preventDefault();
+        var id = href.slice(1);
+        setActive(a);
+        if (id === "dashboard") { unfocus(); }
+        else { focus(document.getElementById(id)); }
+      });
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { unfocus(); setActive(document.querySelector(".side-nav .nav-item")); }
+    });
+    window.addEventListener("resize", function () { place(); resizeCharts(); });
+  })();
+  </script>  <script>
+  (function () {
+    var sp = document.querySelector(".hsplit[data-hsplit]");
+    if (!sp) return;
+    var section = sp.parentNode;
+    var stage = section.querySelector(".bar-stage");
+    var hist  = section.querySelector(".band-history");
+    if (!stage || !hist) return;
+    var dragging = false, rect = null;
+
+    sp.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      dragging = true;
+      rect = section.getBoundingClientRect();
+      sp.classList.add("dragging");
+      document.body.style.cursor = "row-resize";
+    });
+    document.addEventListener("pointermove", function (e) {
+      if (!dragging || !rect) return;
+      var frac = (e.clientY - rect.top) / rect.height;
+      frac = Math.max(0.25, Math.min(0.82, frac));
+      stage.style.flex = "0 0 " + (frac * 100).toFixed(2) + "%";
+      hist.style.flex = "1 1 auto";
+      hist.style.minHeight = "0";
+      if (window.Charts && window.Charts.resize) { try { window.Charts.resize(); } catch (err) {} }
+    });
+    document.addEventListener("pointerup", function () {
+      if (!dragging) return;
+      dragging = false; rect = null;
+      sp.classList.remove("dragging");
+      document.body.style.cursor = "";
+      if (window.Charts && window.Charts.resize) { try { window.Charts.resize(); } catch (err) {} }
+    });
+  })();
+  </script>
+  <script src="/static/diag.js?v=1"></script></body>
+</html>
