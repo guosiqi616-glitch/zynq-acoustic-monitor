@@ -12,6 +12,13 @@
 
 [![演示视频](docs/dashboard_now.png)](docs/演示视频.mp4)
 
+
+https://github.com/user-attachments/assets/c2df8383-c02e-4bb1-a5d2-0fc192d53cbb
+
+
+
+
+
 ▶ **[点击观看完整演示（1 分 29 秒）](docs/演示视频.mp4)**
 
 系统架构 → 实时监测界面 → 语音不报警 → 13 kHz 啸叫告警。
